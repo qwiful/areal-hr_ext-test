@@ -1,17 +1,17 @@
 # Веб-приложение, в котором специалист по кадрам ведет учет сотрудников в нескольких организациях.
 
-# Инструментарий
+## Инструментарий
 
-Операционная система: macOS Sequoia 15.7.4
-IDE: Visual Studio Code
-PostgreSQL: Установлен в операционную систему
+Операционная система: macOS Sequoia 15.7.4.  
+IDE: Visual Studio Code.  
+PostgreSQL: Установлен в операционную систему.
 
 ## Технологии
 
-Frontend: Vue 3, Vite
-Backend: Node.js + Express
-База данных: PostgreSQL
-Управление версиями: Git + GitHub
+Frontend: Vue 3, Vite.  
+Backend: Node.js + Express.  
+База данных: PostgreSQL.  
+Управление версиями: Git + GitHub.
 
 ## Основные команды Git
 
