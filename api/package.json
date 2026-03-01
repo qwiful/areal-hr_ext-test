@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,6 +24,11 @@
     "pg": "^8.19.0"
   },
   "devDependencies": {
-    "node-pg-migrate": "^8.0.4"
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "node-pg-migrate": "^8.0.4",
+    "prettier": "^3.8.1"
   }
 }
