@@ -8,14 +8,15 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "migrate:up": "node -r dotenv/config node_modules/node-pg-migrate/bin/node-pg-migrate up",
+    "migrate:down": "node -r dotenv/config node_modules/node-pg-migrate/bin/node-pg-migrate down"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "argon2": "^0.44.0",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "joi": "^18.0.2",
@@ -24,7 +25,7 @@
     "pg": "^8.19.0"
   },
   "devDependencies": {
-    "eslint": "^10.0.2",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.5.5",
