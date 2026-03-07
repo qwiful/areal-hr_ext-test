@@ -6,6 +6,7 @@ exports.up = (pgm) => {
     update_at: { type: 'timestamp', default: pgm.func('NOW()') },
     delete_at: { type: 'timestamp' },
   })
+  pgm.sql("INSERT INTO role (role) VALUES ('admin'), ('manager')")
 }
 exports.down = (pgm) => {
   pgm.dropTable('role')
