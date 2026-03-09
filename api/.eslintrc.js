@@ -9,5 +9,6 @@ module.exports = {
   },
   rules: {
     'node/no-unpublished-require': 'off',
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   },
 }
