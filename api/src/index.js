@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const path = require('path')
 require('dotenv').config()
 
 const pool = require('./db.js')
@@ -7,12 +8,12 @@ const pool = require('./db.js')
 const organizationsRoutes = require('./routes/organizations.js')
 const departmentsRoutes = require('./routes/departments.js')
 const positionsRoutes = require('./routes/positions.js')
-//const workersRoutes = require('./routes/workers.js')
-//const filesRoutes = require('./routes/files.js')
-//const personnelOperationsRoutes = require('./routes/personnel-operations.js')
+const workersRoutes = require('./routes/workers.js')
+const filesRoutes = require('./routes/files.js')
+const personnelOperationsRoutes = require('./routes/personnel-operations.js')
+const historyRoutes = require('./routes/history-changes.js')
 //const specialistRoutes = require('./routes/specialist.js')
 //const authRoutes = require('./routes/auth.js')
-//const historyRoutes = require('./routes/history-changes.js')
 
 const errorHandler = require('./middleware/errorHandler')
 
@@ -23,15 +24,22 @@ app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')))
+
 app.use('/api/organizations', organizationsRoutes)
 app.use('/api/departments', departmentsRoutes)
 app.use('/api/positions', positionsRoutes)
-//app.use('/api/workers', workersRoutes)
-//app.use('/api/files', filesRoutes)
-//app.use('/api/personnel-operations', personnelOperationsRoutes)
+app.use('/api/workers', workersRoutes)
+app.use('/api/files', filesRoutes)
+app.use('/api/personnel-operations', personnelOperationsRoutes)
+app.use('/api/history', historyRoutes)
 //app.use('/api/specialist', specialistRoutes)
 //app.use('/api/auth', authRoutes)
-//app.use('/api/history', historyRoutes)
+
+app.use((req, res, next) => {
+  req.user = { id: 1 } // временно
+  next()
+})
 
 app.get('/', (req, res) => {
   res.send('API менеджера запущен')
