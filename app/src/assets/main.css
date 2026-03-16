@@ -75,14 +75,46 @@ button.danger:hover {
   padding: 20px;
   border-radius: 5px;
   width: 500px;
+  max-height: 95%;
   max-width: 90%;
 }
 
 .modal-actions {
-  margin-top: 20px;
+  margin-top: 10px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* модальное для сотрудников*/
+.wide {
+  width: 1000px;
+  max-width: 90%;
+}
+
+.worker-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.form-section {
+  background-color: rgb(244, 243, 243);
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.form-section h4 {
+  margin-bottom: 10px;
+  text-align: center;
+  border-bottom: 1px solid lightgray;
+  padding-bottom: 5px;
+  color: #333;
+}
+
+.full-width {
+  margin-top: 0px;
+  grid-column: span 3;
 }
 
 /* формы */
