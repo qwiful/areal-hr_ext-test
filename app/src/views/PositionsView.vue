@@ -92,7 +92,7 @@ const submitForm = async () => {
     fetchPositions()
   } catch (error) {
     console.error('Ошибка сохранения:', error)
-    alert('Ошибка при сохранении')
+    alert(error.response?.data?.error || 'Ошибка при сохранении')
   }
 }
 

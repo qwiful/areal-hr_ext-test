@@ -35,7 +35,7 @@
           </div>
           <div>
             <label>Комментарий:</label>
-            <textarea v-model="form.comment" required></textarea>
+            <textarea v-model="form.comment"></textarea>
           </div>
           <div class="modal-actions">
             <button type="submit">Сохранить</button>

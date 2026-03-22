@@ -60,7 +60,7 @@
           </div>
           <div>
             <label>Комментарий:</label>
-            <textarea v-model="form.comment" required></textarea>
+            <textarea v-model="form.comment"></textarea>
           </div>
           <div class="modal-actions">
             <button type="submit">Сохранить</button>
@@ -92,15 +92,25 @@ const orgMap = ref({})
 const deptMap = ref({})
 
 const fetchOrganizations = async () => {
-  const res = await api.get('/organizations')
-  organizations.value = res.data
-  orgMap.value = Object.fromEntries(res.data.map((o) => [o.id, o.name]))
+  try {
+    const res = await api.get('/organizations')
+    organizations.value = res.data
+    orgMap.value = Object.fromEntries(res.data.map((o) => [o.id, o.name]))
+  } catch (error) {
+    console.error('Ошибка загрузки организаций:', error)
+    alert('Не удалось загрузить организации')
+  }
 }
 
 const fetchDepartments = async () => {
-  const res = await api.get('/departments')
-  departments.value = res.data
-  deptMap.value = Object.fromEntries(res.data.map((d) => [d.id, d.name]))
+  try {
+    const res = await api.get('/departments')
+    departments.value = res.data
+    deptMap.value = Object.fromEntries(res.data.map((d) => [d.id, d.name]))
+  } catch (error) {
+    console.error('Ошибка загрузки отделов:', error)
+    alert('Не удалось загрузить отделы')
+  }
 }
 
 const getOrganizationName = (id) => orgMap.value[id] || id
@@ -145,7 +155,7 @@ const submitForm = async () => {
     await fetchDepartments()
   } catch (error) {
     console.error('Ошибка сохранения:', error)
-    alert('Ошибка при сохранении')
+    alert(error.response?.data?.error || 'Ошибка при сохранении')
   }
 }
 
@@ -156,7 +166,7 @@ const deleteDepartment = async (id) => {
     await fetchDepartments()
   } catch (error) {
     console.error('Ошибка удаления:', error)
-    alert('Не удалось удалить')
+    alert(error.response?.data?.error || 'Не удалось удалить')
   }
 }
 </script>

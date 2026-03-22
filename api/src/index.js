@@ -26,6 +26,11 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')))
 
+app.use((req, res, next) => {
+  req.user = { id: 1 } // временно заглушка
+  next()
+})
+
 app.use('/api/organizations', organizationsRoutes)
 app.use('/api/departments', departmentsRoutes)
 app.use('/api/positions', positionsRoutes)
@@ -35,11 +40,6 @@ app.use('/api/personnel-operations', personnelOperationsRoutes)
 app.use('/api/history', historyRoutes)
 //app.use('/api/specialist', specialistRoutes)
 //app.use('/api/auth', authRoutes)
-
-app.use((req, res, next) => {
-  req.user = { id: 1 } // временно
-  next()
-})
 
 app.get('/', (req, res) => {
   res.send('API менеджера запущен')
