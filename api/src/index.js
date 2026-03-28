@@ -12,7 +12,7 @@ const workersRoutes = require('./routes/workers.js')
 const filesRoutes = require('./routes/files.js')
 const personnelOperationsRoutes = require('./routes/personnel-operations.js')
 const historyRoutes = require('./routes/history-changes.js')
-//const specialistRoutes = require('./routes/specialist.js')
+const specialistsRoutes = require('./routes/specialists.js')
 //const authRoutes = require('./routes/auth.js')
 
 const errorHandler = require('./middleware/errorHandler')
@@ -38,7 +38,7 @@ app.use('/api/workers', workersRoutes)
 app.use('/api/files', filesRoutes)
 app.use('/api/personnel-operations', personnelOperationsRoutes)
 app.use('/api/history', historyRoutes)
-//app.use('/api/specialist', specialistRoutes)
+app.use('/api/specialists', specialistsRoutes)
 //app.use('/api/auth', authRoutes)
 
 app.get('/', (req, res) => {

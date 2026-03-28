@@ -5,7 +5,7 @@ import PositionsView from '../views/PositionsView.vue'
 import WorkersView from '../views/WorkersView.vue'
 import PersonnelOperationsView from '../views/PersonnelOperationsView.vue'
 import HistoryView from '../views/HistoryView.vue'
-//import SpecialistsView from '../views/SpecialistsView.vue'
+import SpecialistsView from '../views/SpecialistsView.vue'
 //import LoginView from '../views/LoginView.vue'
 
 const routes = [
@@ -20,7 +20,7 @@ const routes = [
     meta: { title: 'Кадровые операции' },
   },
   { path: '/history', component: HistoryView, meta: { title: 'История изменений' } },
-  // { path: '/specialists', component: SpecialistsView, meta: { title: 'Пользователи' } },
+  { path: '/specialists', component: SpecialistsView, meta: { title: 'Пользователи' } },
   // { path: '/login', component: LoginView, meta: { title: 'Вход' } },
 ]
 
