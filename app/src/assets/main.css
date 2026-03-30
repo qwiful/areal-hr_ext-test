@@ -190,3 +190,59 @@ select {
   overflow-y: auto;
   background-color: rgb(237, 240, 240);
 }
+
+/* Стили для страницы логина */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: rgb(237, 240, 240);
+}
+
+.login-card {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 350px;
+}
+
+.login-card h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.error-message {
+  color: rgb(235, 50, 50);
+  margin-bottom: 15px;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+/* Кнопка выхода в сайдбаре */
+.sidebar button.logout-btn {
+  background: none;
+  border: none;
+  color: white;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: inherit;
+  margin: 0;
+}
+
+.sidebar button.logout-btn:hover {
+  background-color: rgb(70, 94, 114);
+}
+
+/* Стили для сообщений об ошибках в формах */
+.field-error {
+  color: rgb(235, 50, 50);
+  font-size: 0.8em;
+  margin-top: 3px;
+}
