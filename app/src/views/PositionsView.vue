@@ -103,7 +103,7 @@ const deletePosition = async (id) => {
     fetchPositions()
   } catch (error) {
     console.error('Ошибка удаления:', error)
-    alert('Не удалось удалить')
+    alert(error.response?.data?.error || 'Не удалось удалить')
   }
 }
 </script>

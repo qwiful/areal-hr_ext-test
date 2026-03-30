@@ -20,7 +20,6 @@ const authRoutes = require('./routes/auth.js')
 const errorHandler = require('./middleware/errorHandler')
 const isAuthenticated = require('./middleware/auth')
 const requireRole = require('./middleware/roles')
-const { autoLog } = require('./middleware/historyLogger')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -51,17 +50,12 @@ app.use(passport.session())
 
 app.use('/api/auth', authRoutes)
 
-app.use('/api/organizations', isAuthenticated, autoLog('Организация'), organizationsRoutes)
-app.use('/api/departments', isAuthenticated, autoLog('Отдел'), departmentsRoutes)
-app.use('/api/positions', isAuthenticated, autoLog('Должность'), positionsRoutes)
-app.use('/api/workers', isAuthenticated, autoLog('Сотрудник'), workersRoutes)
-app.use('/api/files', isAuthenticated, autoLog('Файл'), filesRoutes)
-app.use(
-  '/api/personnel-operations',
-  isAuthenticated,
-  autoLog('Кадровая операция'),
-  personnelOperationsRoutes,
-)
+app.use('/api/organizations', isAuthenticated, organizationsRoutes)
+app.use('/api/departments', isAuthenticated, departmentsRoutes)
+app.use('/api/positions', isAuthenticated, positionsRoutes)
+app.use('/api/workers', isAuthenticated, workersRoutes)
+app.use('/api/files', isAuthenticated, filesRoutes)
+app.use('/api/personnel-operations', isAuthenticated, personnelOperationsRoutes)
 app.use('/api/history', isAuthenticated, historyRoutes)
 app.use('/api/specialists', isAuthenticated, requireRole('admin'), specialistsRoutes)
 

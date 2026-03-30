@@ -267,7 +267,7 @@ const deleteWorker = async (id) => {
     await fetchWorkers()
   } catch (error) {
     console.error('Ошибка удаления:', error)
-    alert('Не удалось удалить')
+    alert(error.response?.data?.error || 'Не удалось удалить')
   }
 }
 
@@ -302,7 +302,7 @@ const uploadFile = async () => {
     workerFiles.value = res.data.files || []
   } catch (error) {
     console.error('Ошибка загрузки файла:', error)
-    alert('Ошибка загрузки файла')
+    alert(error.response?.data?.error || 'Ошибка загрузки файла')
   }
 }
 
@@ -318,7 +318,7 @@ const deleteFile = async (id) => {
     workerFiles.value = res.data.files || []
   } catch (error) {
     console.error('Ошибка:', error)
-    alert('Не удалось удалить файл')
+    alert(error.response?.data?.error || 'Не удалось удалить файл')
   }
 }
 </script>

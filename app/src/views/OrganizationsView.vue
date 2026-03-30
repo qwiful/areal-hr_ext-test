@@ -98,7 +98,7 @@ const submitForm = async () => {
     fetchOrganizations()
   } catch (error) {
     console.error('Ошибка сохранения:', error)
-    alert('Ошибка при сохранении')
+    alert(error.response?.data?.error || 'Ошибка при сохранении')
   }
 }
 
@@ -109,7 +109,7 @@ const deleteOrganization = async (id) => {
     fetchOrganizations()
   } catch (error) {
     console.error('Ошибка удаления:', error)
-    alert('Не удалось удалить')
+    alert(error.response?.data?.error || 'Не удалось удалить')
   }
 }
 </script>

@@ -190,7 +190,7 @@ const deleteOperation = async (id) => {
     await fetchOperations()
   } catch (error) {
     console.error('Ошибка:', error)
-    alert('Не удалось удалить')
+    alert(error.response?.data?.error || 'Не удалось удалить')
   }
 }
 </script>
