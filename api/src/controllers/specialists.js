@@ -1,5 +1,6 @@
 const Joi = require('joi')
 const argon2 = require('argon2')
+const { logChange } = require('../middleware/historyLogger')
 
 const createSpecialistSchema = Joi.object({
   surname: Joi.string().min(1).max(50).required(),
@@ -69,10 +70,14 @@ module.exports = (pool) => ({
       await client.query('COMMIT')
 
       const specialist = specialistResult.rows[0]
-      res.status(201).json({
+      const newSpecialist = {
         ...specialist,
         login: newAuth.login,
-      })
+      }
+
+      await logChange(req.user.id, 'Пользователь', 'Создание', newSpecialist)
+
+      res.status(201).json(newSpecialist)
     } catch (err) {
       await client.query('ROLLBACK')
       next(err)
@@ -145,14 +150,14 @@ module.exports = (pool) => ({
     const client = await pool.connect()
 
     try {
-      const specialistCheck = await client.query(
+      const oldResult = await client.query(
         'SELECT * FROM specialist WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (specialistCheck.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Пользователь не найден' })
       }
-      const specialist = specialistCheck.rows[0]
+      const oldData = oldResult.rows[0]
 
       await client.query('BEGIN')
 
@@ -164,7 +169,7 @@ module.exports = (pool) => ({
         if (updates.login) {
           const loginCheck = await client.query(
             'SELECT id FROM "authorization" WHERE login = $1 AND id != $2 AND delete_at IS NULL',
-            [updates.login, specialist.id_authorization],
+            [updates.login, oldData.id_authorization],
           )
           if (loginCheck.rows.length > 0) {
             await client.query('ROLLBACK')
@@ -181,7 +186,7 @@ module.exports = (pool) => ({
         }
 
         authSetClause.push('update_at = CURRENT_TIMESTAMP')
-        authValues.push(specialist.id_authorization)
+        authValues.push(oldData.id_authorization)
 
         await client.query(
           `UPDATE "authorization" SET ${authSetClause.join(', ')} WHERE id = $${authParamIndex}`,
@@ -235,6 +240,11 @@ module.exports = (pool) => ({
         [id],
       )
 
+      await logChange(req.user.id, 'Пользователь', 'Обновление', {
+        old: oldData,
+        new: updatedResult.rows[0],
+      })
+
       res.json(updatedResult.rows[0])
     } catch (err) {
       await client.query('ROLLBACK')
@@ -257,20 +267,21 @@ module.exports = (pool) => ({
         return res.status(400).json({ error: 'Нельзя удалить самого себя' })
       }
 
-      const specialistCheck = await pool.query(
+      const oldResult = await pool.query(
         'SELECT * FROM specialist WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (specialistCheck.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Пользователь не найден' })
       }
-
-      const specialist = specialistCheck.rows[0]
+      const oldData = oldResult.rows[0]
 
       await pool.query('UPDATE specialist SET delete_at = CURRENT_TIMESTAMP WHERE id = $1', [id])
       await pool.query('UPDATE "authorization" SET delete_at = CURRENT_TIMESTAMP WHERE id = $1', [
-        specialist.id_authorization,
+        oldData.id_authorization,
       ])
+
+      await logChange(req.user.id, 'Пользователь', 'Удаление (мягкое)', oldData)
 
       res.json({ message: 'Пользователь помечен как удалённый' })
     } catch (err) {

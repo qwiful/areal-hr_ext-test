@@ -2,6 +2,7 @@ const Joi = require('joi')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
+const { logChange } = require('../middleware/historyLogger')
 
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads')
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -61,6 +62,8 @@ const createController = (pool) => ({
            RETURNING *`,
           [name, req.file.filename, workerId],
         )
+
+        await logChange(req.user.id, 'Файл', 'Создание', result.rows[0])
 
         res.status(201).json(result.rows[0])
       } catch (err) {
@@ -144,13 +147,21 @@ const createController = (pool) => ({
     const { id } = req.params
 
     try {
-      const result = await pool.query(
-        'UPDATE files SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL RETURNING *',
+      const oldResult = await pool.query(
+        'SELECT * FROM files WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (result.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Файл не найден' })
       }
+      const oldData = oldResult.rows[0]
+
+      await pool.query(
+        'UPDATE files SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL',
+        [id],
+      )
+
+      await logChange(req.user.id, 'Файл', 'Удаление (мягкое)', oldData)
 
       res.json({ message: 'Файл помечен как удалённый' })
     } catch (err) {

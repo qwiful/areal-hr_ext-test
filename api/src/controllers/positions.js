@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const { logChange } = require('../middleware/historyLogger')
 
 const createPositionSchema = Joi.object({
   name: Joi.string().min(1).max(100).required(),
@@ -28,6 +29,8 @@ module.exports = (pool) => ({
          RETURNING *`,
         [name],
       )
+
+      await logChange(req.user.id, 'Должность', 'Создание', result.rows[0])
 
       res.status(201).json(result.rows[0])
     } catch (err) {
@@ -81,18 +84,29 @@ module.exports = (pool) => ({
     const { name } = req.body
 
     try {
-      const result = await pool.query(
+      const oldResult = await pool.query(
+        'SELECT * FROM positions WHERE id = $1 AND delete_at IS NULL',
+        [id],
+      )
+      if (oldResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Должность не найдена' })
+      }
+      const oldData = oldResult.rows[0]
+
+      const updateResult = await pool.query(
         `UPDATE positions
          SET name = $1, update_at = CURRENT_TIMESTAMP
          WHERE id = $2 AND delete_at IS NULL
          RETURNING *`,
         [name, id],
       )
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Должность не найдена' })
-      }
 
-      res.json(result.rows[0])
+      await logChange(req.user.id, 'Должность', 'Обновление', {
+        old: oldData,
+        new: updateResult.rows[0],
+      })
+
+      res.json(updateResult.rows[0])
     } catch (err) {
       next(err)
     }
@@ -107,13 +121,21 @@ module.exports = (pool) => ({
     const { id } = req.params
 
     try {
-      const result = await pool.query(
-        'UPDATE positions SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL RETURNING *',
+      const oldResult = await pool.query(
+        'SELECT * FROM positions WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (result.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Должность не найдена' })
       }
+      const oldData = oldResult.rows[0]
+
+      await pool.query(
+        'UPDATE positions SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL',
+        [id],
+      )
+
+      await logChange(req.user.id, 'Должность', 'Удаление (мягкое)', oldData)
 
       res.json({ message: 'Должность помечена как удалённая' })
     } catch (err) {

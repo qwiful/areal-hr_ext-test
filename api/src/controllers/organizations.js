@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const { logChange } = require('../middleware/historyLogger')
 
 const createOrganizationSchema = Joi.object({
   name: Joi.string().min(1).max(50).required(),
@@ -30,6 +31,8 @@ module.exports = (pool) => ({
          RETURNING *`,
         [name, comment || ''],
       )
+
+      await logChange(req.user.id, 'Организация', 'Создание', result.rows[0])
 
       res.status(201).json(result.rows[0])
     } catch (err) {
@@ -92,6 +95,7 @@ module.exports = (pool) => ({
       if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Организация не найдена' })
       }
+      const oldData = oldResult.rows[0]
 
       const setClause = []
       const values = []
@@ -116,6 +120,12 @@ module.exports = (pool) => ({
       values.push(id)
 
       const updateResult = await pool.query(query, values)
+
+      await logChange(req.user.id, 'Организация', 'Обновление', {
+        old: oldData,
+        new: updateResult.rows[0],
+      })
+
       res.json(updateResult.rows[0])
     } catch (err) {
       next(err)
@@ -131,13 +141,21 @@ module.exports = (pool) => ({
     const { id } = req.params
 
     try {
-      const result = await pool.query(
-        'UPDATE organizations SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL RETURNING *',
+      const oldResult = await pool.query(
+        'SELECT * FROM organizations WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (result.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Организация не найдена' })
       }
+      const oldData = oldResult.rows[0]
+
+      await pool.query(
+        'UPDATE organizations SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL',
+        [id],
+      )
+
+      await logChange(req.user.id, 'Организация', 'Удаление (мягкое)', oldData)
 
       res.json({ message: 'Организация помечена как удалённая' })
     } catch (err) {

@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const { logChange } = require('../middleware/historyLogger')
 
 const createDepartmentSchema = Joi.object({
   id_organization: Joi.number().integer().positive().required(),
@@ -52,6 +53,8 @@ module.exports = (pool) => ({
          RETURNING *`,
         [id_organization, name, id_parent || null, comment || ''],
       )
+
+      await logChange(req.user.id, 'Отдел', 'Создание', result.rows[0])
 
       res.status(201).json(result.rows[0])
     } catch (err) {
@@ -121,6 +124,7 @@ module.exports = (pool) => ({
       if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Отдел не найден' })
       }
+      const oldData = oldResult.rows[0]
 
       if (updates.id_organization) {
         const orgCheck = await pool.query(
@@ -167,6 +171,12 @@ module.exports = (pool) => ({
       values.push(id)
 
       const updateResult = await pool.query(query, values)
+
+      await logChange(req.user.id, 'Отдел', 'Обновление', {
+        old: oldData,
+        new: updateResult.rows[0],
+      })
+
       res.json(updateResult.rows[0])
     } catch (err) {
       next(err)
@@ -182,13 +192,21 @@ module.exports = (pool) => ({
     const { id } = req.params
 
     try {
-      const result = await pool.query(
-        'UPDATE departments SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL RETURNING *',
+      const oldResult = await pool.query(
+        'SELECT * FROM departments WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (result.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Отдел не найден' })
       }
+      const oldData = oldResult.rows[0]
+
+      await pool.query(
+        'UPDATE departments SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL',
+        [id],
+      )
+
+      await logChange(req.user.id, 'Отдел', 'Удаление (мягкое)', oldData)
 
       res.json({ message: 'Отдел помечен как удалённый' })
     } catch (err) {

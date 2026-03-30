@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const { logChange } = require('../middleware/historyLogger')
 
 const OPERATION_TYPES = ['hiring', 'salary_change', 'department_change', 'dismissal']
 
@@ -86,6 +87,8 @@ module.exports = (pool) => ({
         [id_worker, operation_type, id_department || null, id_position || null, salary || null],
       )
 
+      await logChange(req.user.id, 'Кадровая операция', 'Создание', result.rows[0])
+
       res.status(201).json(result.rows[0])
     } catch (err) {
       next(err)
@@ -157,13 +160,14 @@ module.exports = (pool) => ({
     const updates = req.body
 
     try {
-      const check = await pool.query(
+      const oldResult = await pool.query(
         'SELECT * FROM personnel_operations WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (check.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Кадровая операция не найдена' })
       }
+      const oldData = oldResult.rows[0]
 
       if (updates.id_department) {
         const deptCheck = await pool.query(
@@ -198,7 +202,7 @@ module.exports = (pool) => ({
       setClause.push('update_at = CURRENT_TIMESTAMP')
       values.push(id)
 
-      const result = await pool.query(
+      const updateResult = await pool.query(
         `UPDATE personnel_operations
          SET ${setClause.join(', ')}
          WHERE id = $${paramIndex} AND delete_at IS NULL
@@ -206,7 +210,12 @@ module.exports = (pool) => ({
         values,
       )
 
-      res.json(result.rows[0])
+      await logChange(req.user.id, 'Кадровая операция', 'Обновление', {
+        old: oldData,
+        new: updateResult.rows[0],
+      })
+
+      res.json(updateResult.rows[0])
     } catch (err) {
       next(err)
     }
@@ -221,13 +230,21 @@ module.exports = (pool) => ({
     const { id } = req.params
 
     try {
-      const result = await pool.query(
-        'UPDATE personnel_operations SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL RETURNING *',
+      const oldResult = await pool.query(
+        'SELECT * FROM personnel_operations WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (result.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Кадровая операция не найдена' })
       }
+      const oldData = oldResult.rows[0]
+
+      await pool.query(
+        'UPDATE personnel_operations SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL',
+        [id],
+      )
+
+      await logChange(req.user.id, 'Кадровая операция', 'Удаление (мягкое)', oldData)
 
       res.json({ message: 'Кадровая операция помечена как удалённая' })
     } catch (err) {

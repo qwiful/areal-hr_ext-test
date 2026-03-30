@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const { logChange } = require('../middleware/historyLogger')
 
 const passportSchema = Joi.object({
   series: Joi.string().min(1).max(20).required(),
@@ -90,11 +91,15 @@ module.exports = (pool) => ({
 
       await client.query('COMMIT')
 
-      res.status(201).json({
+      const newWorker = {
         ...workerResult.rows[0],
         passport: newPassport,
         address: newAddress,
-      })
+      }
+
+      await logChange(req.user.id, 'Сотрудник', 'Создание', newWorker)
+
+      res.status(201).json(newWorker)
     } catch (err) {
       await client.query('ROLLBACK')
       next(err)
@@ -182,15 +187,15 @@ module.exports = (pool) => ({
     try {
       await client.query('BEGIN')
 
-      const workerCheck = await client.query(
+      const oldResult = await client.query(
         'SELECT * FROM workers WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (workerCheck.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         await client.query('ROLLBACK')
         return res.status(404).json({ error: 'Сотрудник не найден' })
       }
-      const worker = workerCheck.rows[0]
+      const oldData = oldResult.rows[0]
 
       if (updates.passport) {
         const p = updates.passport
@@ -198,7 +203,7 @@ module.exports = (pool) => ({
           `UPDATE passports SET series = $1, number = $2, date_issue = $3,
            unit_kod = $4, issued_by_whom = $5, update_at = CURRENT_TIMESTAMP
            WHERE id = $6`,
-          [p.series, p.number, p.date_issue, p.unit_kod, p.issued_by_whom, worker.id_passport],
+          [p.series, p.number, p.date_issue, p.unit_kod, p.issued_by_whom, oldData.id_passport],
         )
       }
 
@@ -215,7 +220,7 @@ module.exports = (pool) => ({
             a.house,
             a.building || '',
             a.apartment || '',
-            worker.id_address,
+            oldData.id_address,
           ],
         )
       }
@@ -245,17 +250,24 @@ module.exports = (pool) => ({
 
       const updatedWorker = await pool.query('SELECT * FROM workers WHERE id = $1', [id])
       const updatedPassport = await pool.query('SELECT * FROM passports WHERE id = $1', [
-        worker.id_passport,
+        oldData.id_passport,
       ])
       const updatedAddress = await pool.query('SELECT * FROM address WHERE id = $1', [
-        worker.id_address,
+        oldData.id_address,
       ])
 
-      res.json({
+      const newWorker = {
         ...updatedWorker.rows[0],
         passport: updatedPassport.rows[0],
         address: updatedAddress.rows[0],
+      }
+
+      await logChange(req.user.id, 'Сотрудник', 'Обновление', {
+        old: oldData,
+        new: newWorker,
       })
+
+      res.json(newWorker)
     } catch (err) {
       await client.query('ROLLBACK')
       next(err)
@@ -273,13 +285,21 @@ module.exports = (pool) => ({
     const { id } = req.params
 
     try {
-      const result = await pool.query(
-        'UPDATE workers SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL RETURNING *',
+      const oldResult = await pool.query(
+        'SELECT * FROM workers WHERE id = $1 AND delete_at IS NULL',
         [id],
       )
-      if (result.rows.length === 0) {
+      if (oldResult.rows.length === 0) {
         return res.status(404).json({ error: 'Сотрудник не найден' })
       }
+      const oldData = oldResult.rows[0]
+
+      await pool.query(
+        'UPDATE workers SET delete_at = CURRENT_TIMESTAMP WHERE id = $1 AND delete_at IS NULL',
+        [id],
+      )
+
+      await logChange(req.user.id, 'Сотрудник', 'Удаление (мягкое)', oldData)
 
       res.json({ message: 'Сотрудник помечен как удалённый' })
     } catch (err) {
