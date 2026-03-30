@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div v-if="!isLoginPage" class="app-container">
     <aside class="sidebar">
       <nav>
         <ul>
@@ -9,18 +9,32 @@
           <li><router-link to="/workers">Сотрудники</router-link></li>
           <li><router-link to="/personnel-operations">Кадровые операции</router-link></li>
           <li><router-link to="/history">История изменений</router-link></li>
-          <li><router-link to="/specialists">Пользователи</router-link></li>
-          <li><router-link to="/">Выйти</router-link></li>
+          <li v-if="isAdmin"><router-link to="/specialists">Пользователи</router-link></li>
+          <li><button class="logout-btn" @click="logout">Выйти</button></li>
         </ul>
       </nav>
     </aside>
-
     <main class="content">
       <router-view />
     </main>
   </div>
+  <router-view v-else />
 </template>
 
 <script setup>
-// тут потом добавить логику проверки авторизации и т.п.
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+const isLoginPage = computed(() => route.path === '/login')
+const isAdmin = computed(() => authStore.role === 'admin')
+
+const logout = async () => {
+  await authStore.logout()
+  router.push('/login')
+}
 </script>
