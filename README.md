@@ -25,3 +25,14 @@ Backend: Node.js + Express.
 - git log – просмотр истории
 - git branch – список веток
 - git checkout -b <branch> – создать и переключиться на новую ветку
+
+## Запуск приложения и первый вход
+
+1. Запуск миграции: npm run migrate:up
+2. Запуск backend проводить из директории api: npm run start
+3. Запуск frontend проводить из директории app: npm run dev
+4. Приложение будет работать на http://localhost:5173/
+5. Первый вход в роли администратора:
+
+- Логин: admin
+- Пароль: admin
