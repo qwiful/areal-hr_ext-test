@@ -16,7 +16,6 @@ export default {
         { text: 'Должности', link: '/user/positions' },
         { text: 'Сотрудники', link: '/user/workers' },
         { text: 'Кадровые операции', link: '/user/personnel-operations' },
-        { text: 'Файлы', link: '/user/files' },
         { text: 'История изменений', link: '/user/history-changes' },
       ],
       '/admin/': [
