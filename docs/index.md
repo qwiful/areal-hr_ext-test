@@ -32,12 +32,8 @@
 
 ## Схема базы данных
 
-- [Схема БД](/drawio/)
+- Предствавлена в папке drawio
 
 ## Репозиторий
 
 Исходный код доступен на GitHub: [https://github.com/qwiful/areal-hr_ext-test](https://github.com/qwiful/areal-hr_ext-test)
-
----
-
-**Разработано в рамках производственной практики, 2026 г.**
